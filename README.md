@@ -1,1 +1,1 @@
-# msc - a music library handler and downloader
+# msc - music library handler and downloader

@@ -28,18 +28,19 @@ enum Cmd {
 	}
 }
 
-fn is_dir(s: String) -> Result<(), String> {
-	let path = Path::new(&s);
-	if path.is_dir() {
-		Ok(())
-	} else if path.exists() {
-		Err(format!("{} is not a directory", s))
-	} else {
-		Err(format!("{}: no such file or directory", s))
+fn get_opts() -> Opts {
+	// validate paths
+	fn is_dir(s: String) -> Result<(), String> {
+		let path = Path::new(&s);
+		if path.is_dir() {
+			Ok(())
+		} else if path.exists() {
+			Err(format!("{} is not a directory", s))
+		} else {
+			Err(format!("{}: no such file or directory", s))
+		}
 	}
-}
-
-fn main() {
+	
 	let app = App::new("msc - music library handler and downloader")
 		.author("EmmChriss <emmchris@protonmail.com>")
 		.setting(AppSettings::ArgRequiredElseHelp)
@@ -112,6 +113,29 @@ fn main() {
 			}
 		}
 	};
+	opts
+}
+
+struct Entry {
+	pub url: String,
+	pub id: String,
+	pub title: String,
+	pub kind: EntryKind,
+	pub cache: Vec<Song>
+}
+
+enum EntryKind {
+	Single,
+	Playlist
+}
+
+struct Song {
+	pub id: String,
+	pub title: String
+}
+
+fn main() {
+	let opts = get_opts();
 	
-	println!("{:?}", opts);
+	
 }
