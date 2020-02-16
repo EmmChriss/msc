@@ -212,29 +212,28 @@ pub fn exec_script(script: &Script, ctx: &mut Value) {
 	let mut var = ctx;
 	while var_path.len() > 1 {
 		let path_segm = var_path.pop().unwrap();
-		if let Some(var_ch) = var.get_mut(path_segm) {
-			if var_ch.as_object_mut().is_some() {
-				var = var_ch;
-			} else {
-				// var_ch not an object, not sure what to do now
-				// guess I'll just remake it as an object
-				// TODO
-			}
+		var.as_object_mut().unwrap().entry(&path_segm).or_insert({
+			Value::Object(Map::new())
+		});
+		let var_ch = var.get_mut(&path_segm).unwrap();
+		if var_ch.as_object_mut().is_some() {
+			var = var_ch;
 		} else {
-			let var_ch = Value::Object(Map::new());
-			var.as_object_mut().unwrap().insert(path_segm, var_ch);
-			var = var.get_mut(path_segm).unwrap();
+			// var_ch not an object, not sure what to do now
+			// guess I'll just remake it as an object
+			// TODO
+			unimplemented!();
 		}
 	}
 	let path_last = var_path.pop().unwrap();
 	var.as_object_mut().unwrap().insert(path_last, Value::String(val_str));
 }
 
-pub fn exec_val(val: &Val, ctx: &Value) -> String {
+fn exec_val(val: &Val, ctx: &Value) -> String {
 	match val {
 		Val::String(str) => str.clone(),
 		Val::Var(path) => {
-			let mut path = path;
+			let mut path = path.clone();
 			let mut var = ctx;
 			while let Some(path_segment) = path.pop() {
 				if let Some(var_ch) = var.get(path_segment) {
@@ -250,7 +249,7 @@ pub fn exec_val(val: &Val, ctx: &Value) -> String {
 	}
 }
 
-pub fn exec_fn(name: &str, args: &Vec<Val>, ctx: &Value) -> String {
+fn exec_fn(name: &str, args: &Vec<Val>, ctx: &Value) -> String {
 	match name {
 		"replace" => {
 			if args.len() != 3 {
@@ -260,10 +259,10 @@ pub fn exec_fn(name: &str, args: &Vec<Val>, ctx: &Value) -> String {
 			
 			if let Val::String(_) = args[1] {
 				let args: Vec<_> = args.iter().map(|val| exec_val(val, ctx)).collect();
-				let str = args[0];
-				let from = args[1];
-				let to   = args[2];
-				return str.replace(&from, &to);
+				let str  = &args[0];
+				let from = &args[1];
+				let to   = &args[2];
+				return str.replace(from, to);
 			} else {
 				// TODO regex parsing and shit
 				unimplemented!();
